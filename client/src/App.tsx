@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import ProjectDetail from "./pages/ProjectDetail";
 import Blog from "./pages/Blog";
 import ArticleDetail from "./pages/ArticleDetail";
+import Messages from "./pages/Messages";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/projects/:id" component={ProjectDetail} />
       <Route path="/blog" component={Blog} />
       <Route path="/articles/:slug" component={ArticleDetail} />
+      <Route path="/messages" component={Messages} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

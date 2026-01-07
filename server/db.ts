@@ -156,6 +156,81 @@ export async function createContactSubmission(data: InsertContactSubmission) {
   }
 }
 
+export async function getAllContactSubmissions() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get contact submissions: database not available");
+    return [];
+  }
+
+  try {
+    const { desc } = await import("drizzle-orm");
+    const result = await db
+      .select()
+      .from(contactSubmissions)
+      .orderBy(desc(contactSubmissions.createdAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to get contact submissions:", error);
+    return [];
+  }
+}
+
+export async function getContactSubmissionById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get contact submission: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(contactSubmissions)
+      .where(eq(contactSubmissions.id, id))
+      .limit(1);
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get contact submission:", error);
+    return undefined;
+  }
+}
+
+export async function updateContactSubmission(id: number, data: { status?: string; reply?: string; repliedAt?: Date }) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update contact submission: database not available");
+    return undefined;
+  }
+
+  try {
+    await db
+      .update(contactSubmissions)
+      .set(data as any)
+      .where(eq(contactSubmissions.id, id));
+    return { success: true };
+  } catch (error) {
+    console.error("[Database] Failed to update contact submission:", error);
+    throw error;
+  }
+}
+
+export async function deleteContactSubmission(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete contact submission: database not available");
+    return undefined;
+  }
+
+  try {
+    await db.delete(contactSubmissions).where(eq(contactSubmissions.id, id));
+    return { success: true };
+  } catch (error) {
+    console.error("[Database] Failed to delete contact submission:", error);
+    throw error;
+  }
+}
+
 // Article queries
 export async function getAllPublishedArticles() {
   const db = await getDb();

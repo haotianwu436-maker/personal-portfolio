@@ -56,6 +56,9 @@ export const contactSubmissions = mysqlTable("contactSubmissions", {
   email: varchar("email", { length: 320 }).notNull(),
   message: text("message").notNull(),
   subject: varchar("subject", { length: 255 }),
+  status: mysqlEnum("status", ["unread", "read", "replied"]).default("unread").notNull(),
+  reply: text("reply"),
+  repliedAt: timestamp("repliedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

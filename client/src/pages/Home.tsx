@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowDown, ArrowUpRight, Mail, Github, Twitter } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Mail, Instagram, Twitter, Send } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
@@ -191,30 +191,57 @@ export default function Home() {
 
         {/* Contact Section */}
         <section id="contact" className="section-padding">
-          <div className="container max-w-2xl mx-auto text-center">
+          <div className="container max-w-3xl mx-auto">
             <motion.div
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
               variants={staggerContainer}
+              className="text-center mb-16"
             >
               <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl font-serif mb-8">Let's Connect</motion.h2>
               <motion.p variants={fadeInUp} className="text-xl text-muted-foreground font-light mb-12">
                 如果你对社区、文化或长期建设感兴趣，<br/>欢迎联系我，一同探索更多可能。
               </motion.p>
               
-              <motion.div variants={fadeInUp} className="flex justify-center gap-8">
-                <a href="#" className="p-4 rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground transition-all duration-300 group">
-                  <Mail size={24} className="group-hover:scale-110 transition-transform" />
+              {/* Contact Info */}
+              <motion.div variants={fadeInUp} className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-16">
+                <a 
+                  href="mailto:haotianwu436@gmail.com" 
+                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors group"
+                >
+                  <div className="p-3 rounded-full bg-secondary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                    <Mail size={20} />
+                  </div>
+                  <span className="font-light">haotianwu436@gmail.com</span>
                 </a>
-                <a href="#" className="p-4 rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground transition-all duration-300 group">
-                  <Github size={24} className="group-hover:scale-110 transition-transform" />
+                <a 
+                  href="https://instagram.com/dlxbxy" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors group"
+                >
+                  <div className="p-3 rounded-full bg-secondary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                    <Instagram size={20} />
+                  </div>
+                  <span className="font-light">@dlxbxy</span>
                 </a>
-                <a href="#" className="p-4 rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground transition-all duration-300 group">
-                  <Twitter size={24} className="group-hover:scale-110 transition-transform" />
+                <a 
+                  href="https://x.com/dlxbxy" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors group"
+                >
+                  <div className="p-3 rounded-full bg-secondary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                    <Twitter size={20} />
+                  </div>
+                  <span className="font-light">@dlxbxy</span>
                 </a>
               </motion.div>
             </motion.div>
+
+            {/* Message Form */}
+            <ContactForm />
           </div>
         </section>
       </main>
@@ -298,6 +325,142 @@ function ProjectCard({ id, title, role, description, tags, image, align = "left"
           了解更多 <ArrowUpRight size={16} className="ml-1 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
         </Button>
       </div>
+    </motion.div>
+  );
+}
+
+function ContactForm() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const contactMutation = trpc.contact.submit.useMutation({
+    onSuccess: () => {
+      setSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    },
+    onError: (error) => {
+      alert("发送失败，请稍后重试");
+    }
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) {
+      alert("请填写必填项");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await contactMutation.mutateAsync(formData);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-secondary/50 rounded-2xl p-8 md:p-12 text-center"
+      >
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Send size={24} className="text-primary" />
+        </div>
+        <h3 className="text-2xl font-serif mb-4">消息已发送</h3>
+        <p className="text-muted-foreground font-light mb-6">
+          感谢你的留言，我会尽快回复你。
+        </p>
+        <Button 
+          variant="outline" 
+          onClick={() => setSubmitted(false)}
+          className="rounded-full"
+        >
+          发送另一条消息
+        </Button>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+      className="bg-secondary/50 rounded-2xl p-8 md:p-12"
+    >
+      <h3 className="text-2xl font-serif mb-2 text-center">给我留言</h3>
+      <p className="text-muted-foreground font-light mb-8 text-center">
+        有任何想法或合作意向，欢迎留言
+      </p>
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">姓名 *</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="你的名字"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">邮箱 *</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="your@email.com"
+              required
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-2">主题</label>
+          <input
+            type="text"
+            value={formData.subject}
+            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+            className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            placeholder="你想聊什么？"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-2">消息 *</label>
+          <textarea
+            value={formData.message}
+            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+            rows={5}
+            className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+            placeholder="写下你的想法..."
+            required
+          />
+        </div>
+        
+        <div className="text-center">
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-full px-12 py-6 text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30"
+          >
+            {isSubmitting ? "发送中..." : "发送消息"}
+            <Send size={16} className="ml-2" />
+          </Button>
+        </div>
+      </form>
     </motion.div>
   );
 }

@@ -3,7 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { getAllProjects, getProjectById, createContactSubmission, getAllPublishedArticles, getArticleBySlug, getArticleById, createArticle, updateArticle, deleteArticle } from "./db";
+import { getAllProjects, getProjectById, createContactSubmission, getAllContactSubmissions, getContactSubmissionById, updateContactSubmission, deleteContactSubmission, getAllPublishedArticles, getArticleBySlug, getArticleById, createArticle, updateArticle, deleteArticle } from "./db";
 import { nanoid } from "nanoid";
 
 export const appRouter = router({
@@ -51,6 +51,51 @@ export const appRouter = router({
           console.error("Failed to submit contact form:", error);
           throw new Error("Failed to submit contact form");
         }
+      }),
+    list: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.user) {
+        throw new Error("Unauthorized");
+      }
+      return await getAllContactSubmissions();
+    }),
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input, ctx }) => {
+        if (!ctx.user) {
+          throw new Error("Unauthorized");
+        }
+        return await getContactSubmissionById(input.id);
+      }),
+    markAsRead: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user) {
+          throw new Error("Unauthorized");
+        }
+        return await updateContactSubmission(input.id, { status: "read" });
+      }),
+    reply: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        reply: z.string().min(1, "Reply is required"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user) {
+          throw new Error("Unauthorized");
+        }
+        return await updateContactSubmission(input.id, {
+          reply: input.reply,
+          status: "replied",
+          repliedAt: new Date(),
+        });
+      }),
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user) {
+          throw new Error("Unauthorized");
+        }
+        return await deleteContactSubmission(input.id);
       }),
   }),
 
