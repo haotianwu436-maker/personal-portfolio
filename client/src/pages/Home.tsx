@@ -1,7 +1,10 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Mail, Github, Twitter } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
 
 // Animation variants
 const fadeInUp = {
@@ -20,6 +23,10 @@ const staggerContainer = {
 };
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -155,35 +162,7 @@ export default function Home() {
             </motion.div>
 
             <div className="space-y-24 md:space-y-32">
-              {/* Project 1 */}
-              <ProjectCard 
-                title="拼团社区项目"
-                role="社区发起 / 组织 / 产品与运营协调"
-                description="一个基于线下与线上结合的拼团社区实验，关注信任、协作与真实关系的建立。"
-                tags={["社区实验", "信任", "在地化"]}
-                image="/images/project-community.jpg"
-                align="right"
-              />
-              
-              {/* Project 2 */}
-              <ProjectCard 
-                title="风水文化项目"
-                role="内容策划 / 文化转译 / 社群搭建"
-                description="尝试用现代方式重新理解与表达传统风水与东方文化，让它回到“生活智慧”本身。"
-                tags={["东方文化", "现代转译", "生活美学"]}
-                image="/images/project-fengshui.jpg"
-                align="left"
-              />
-
-              {/* Project 3 */}
-              <ProjectCard 
-                title="区块链社区项目"
-                role="社区建设 / 活动组织 / 对外合作"
-                description="围绕区块链与 Web3 的学习型社区，重点不在投机，而在共识、协作与长期建设。"
-                tags={["学习型社区", "共识", "长期主义"]}
-                image="/images/project-blockchain.jpg"
-                align="right"
-              />
+              <ProjectsList />
             </div>
           </div>
         </section>
@@ -240,13 +219,38 @@ export default function Home() {
   );
 }
 
-function ProjectCard({ title, role, description, tags, image, align = "left" }: { 
+function ProjectsList() {
+  const [, navigate] = useLocation();
+  const { data: projects = [] } = trpc.projects.list.useQuery();
+
+  return (
+    <>
+      {projects.map((project, index) => (
+        <ProjectCard
+          key={project.id}
+          id={project.id}
+          title={project.title}
+          role={project.role}
+          description={project.description}
+          tags={project.tags}
+          image={project.image}
+          align={index % 2 === 0 ? "right" : "left"}
+          onLearnMore={() => navigate(`/projects/${project.id}`)}
+        />
+      ))}
+    </>
+  );
+}
+
+function ProjectCard({ id, title, role, description, tags, image, align = "left", onLearnMore }: { 
+  id: string,
   title: string, 
   role: string, 
   description: string, 
   tags: string[], 
   image: string,
-  align?: "left" | "right" 
+  align?: "left" | "right",
+  onLearnMore?: () => void
 }) {
   return (
     <motion.div 
@@ -283,7 +287,7 @@ function ProjectCard({ title, role, description, tags, image, align = "left" }: 
           ))}
         </div>
 
-        <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80 group">
+        <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80 group" onClick={onLearnMore}>
           了解更多 <ArrowUpRight size={16} className="ml-1 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
         </Button>
       </div>
