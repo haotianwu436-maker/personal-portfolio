@@ -2,8 +2,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Mail, Github, Twitter } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 // Animation variants
@@ -23,6 +23,7 @@ const staggerContainer = {
 };
 
 export default function Home() {
+  const [, navigate] = useLocation();
   // The userAuth hooks provides authentication state
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
   let { user, loading, error, isAuthenticated, logout } = useAuth();
@@ -167,7 +168,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Writing / Thoughts Placeholder */}
+        {/* Writing / Thoughts Section */}
         <section className="section-padding bg-secondary/30">
           <div className="container text-center">
             <motion.div
@@ -176,8 +177,14 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className="text-2xl md:text-3xl font-serif mb-4">一些想法 / 一些记录</h2>
-              <p className="text-muted-foreground italic">正在整理中，敬请期待...</p>
+              <h2 className="text-2xl md:text-3xl font-serif mb-4">一些想法</h2>
+              <p className="text-muted-foreground mb-8 font-light">关于社区、文化与技术的思考与记录</p>
+              <Button 
+                onClick={() => navigate("/blog")}
+                className="rounded-full px-8 py-6 text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30"
+              >
+                阅读所有文章 <ArrowUpRight size={16} className="ml-2" />
+              </Button>
             </motion.div>
           </div>
         </section>

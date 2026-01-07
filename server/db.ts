@@ -91,7 +91,7 @@ export async function getUserByOpenId(openId: string) {
 
 // TODO: add feature queries here as your schema grows.
 
-import { projects, contactSubmissions, InsertContactSubmission } from "../drizzle/schema";
+import { projects, contactSubmissions, InsertContactSubmission, articles, InsertArticle, Article } from "../drizzle/schema";
 
 // Project queries
 export async function getAllProjects() {
@@ -152,6 +152,137 @@ export async function createContactSubmission(data: InsertContactSubmission) {
     return result;
   } catch (error) {
     console.error("[Database] Failed to create contact submission:", error);
+    throw error;
+  }
+}
+
+// Article queries
+export async function getAllPublishedArticles() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get articles: database not available");
+    return [];
+  }
+
+  try {
+    const { desc } = await import("drizzle-orm");
+    const result = await db
+      .select()
+      .from(articles)
+      .where(eq(articles.status, "published"))
+      .orderBy(desc(articles.publishedAt));
+    
+    return result.map(a => ({
+      ...a,
+      tags: a.tags ? JSON.parse(a.tags) : []
+    }));
+  } catch (error) {
+    console.error("[Database] Failed to get articles:", error);
+    return [];
+  }
+}
+
+export async function getArticleBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get article: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(articles)
+      .where(eq(articles.slug, slug))
+      .limit(1);
+    
+    if (result.length === 0) return undefined;
+    
+    const a = result[0];
+    return {
+      ...a,
+      tags: a.tags ? JSON.parse(a.tags) : []
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get article:", error);
+    return undefined;
+  }
+}
+
+export async function getArticleById(id: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get article: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(articles)
+      .where(eq(articles.id, id))
+      .limit(1);
+    
+    if (result.length === 0) return undefined;
+    
+    const a = result[0];
+    return {
+      ...a,
+      tags: a.tags ? JSON.parse(a.tags) : []
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get article:", error);
+    return undefined;
+  }
+}
+
+export async function createArticle(data: InsertArticle) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create article: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db.insert(articles).values(data);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to create article:", error);
+    throw error;
+  }
+}
+
+export async function updateArticle(id: string, data: Partial<InsertArticle>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update article: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .update(articles)
+      .set(data)
+      .where(eq(articles.id, id));
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to update article:", error);
+    throw error;
+  }
+}
+
+export async function deleteArticle(id: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete article: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db.delete(articles).where(eq(articles.id, id));
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to delete article:", error);
     throw error;
   }
 }

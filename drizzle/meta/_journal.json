@@ -15,6 +15,13 @@
       "when": 1767765907823,
       "tag": "0001_boring_vampiro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1767775536531,
+      "tag": "0002_mushy_eternity",
+      "breakpoints": true
     }
   ]
 }
