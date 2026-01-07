@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
-import { getProjectById } from "@/data/projects";
+import { trpc } from "@/lib/trpc";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -14,13 +14,24 @@ export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
   const [, navigate] = useLocation();
 
-  const project = params ? getProjectById(params.id) : null;
+  const { data: project, isLoading, error } = trpc.projects.getById.useQuery(
+    { id: params?.id || "" },
+    { enabled: !!params?.id }
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [params]);
 
-  if (!project) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <p className="text-muted-foreground">加载中...</p>
+      </div>
+    );
+  }
+
+  if (error || !project) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center">
         <div className="text-center">
@@ -69,7 +80,7 @@ export default function ProjectDetail() {
                 <div>
                   <p className="text-sm text-primary font-medium uppercase tracking-wider mb-2">关键词</p>
                   <div className="flex flex-wrap gap-2">
-                    {project.tags.map(tag => (
+                    {project.tags.map((tag: string) => (
                       <span key={tag} className="px-3 py-1 bg-secondary rounded-full text-sm">
                         {tag}
                       </span>
@@ -125,7 +136,7 @@ export default function ProjectDetail() {
             >
               <h2 className="text-2xl md:text-3xl font-serif mb-8">核心成果</h2>
               <div className="space-y-4">
-                {project.highlights.map((highlight, index) => (
+                {project.highlights.map((highlight: string, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -20 }}
@@ -173,7 +184,7 @@ export default function ProjectDetail() {
             >
               <h2 className="text-2xl md:text-3xl font-serif mb-8">主要收获</h2>
               <div className="space-y-6">
-                {project.learnings.map((learning, index) => (
+                {project.learnings.map((learning: string, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
