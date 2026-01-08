@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUpRight, Mail, Instagram, Twitter, Send } from "lucide-
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import LatestArticles from "@/components/LatestArticles";
 
 // Animation variants
 const fadeInUp = {
@@ -168,26 +169,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Writing / Thoughts Section */}
-        <section className="section-padding bg-secondary/30">
-          <div className="container text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="text-2xl md:text-3xl font-serif mb-4">一些想法</h2>
-              <p className="text-muted-foreground mb-8 font-light">关于社区、文化与技术的思考与记录</p>
-              <Button 
-                onClick={() => navigate("/blog")}
-                className="rounded-full px-8 py-6 text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30"
-              >
-                阅读所有文章 <ArrowUpRight size={16} className="ml-2" />
-              </Button>
-            </motion.div>
-          </div>
-        </section>
+        {/* Latest Articles Section */}
+        <LatestArticles />
 
         {/* Contact Section */}
         <section id="contact" className="section-padding">

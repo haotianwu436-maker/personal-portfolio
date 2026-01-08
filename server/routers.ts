@@ -5,6 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getAllProjects, getProjectById, createContactSubmission, getAllContactSubmissions, getContactSubmissionById, updateContactSubmission, deleteContactSubmission, getAllPublishedArticles, getArticleBySlug, getArticleById, createArticle, updateArticle, deleteArticle, updateProject, deleteProject } from "./db";
 import { nanoid } from "nanoid";
+import { ENV } from "./_core/env";
 
 export const appRouter = router({
   system: systemRouter,
@@ -40,8 +41,8 @@ export const appRouter = router({
         tags: z.array(z.string()).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user) {
-          throw new Error("Unauthorized");
+        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
+          throw new Error("Unauthorized: Only the owner can edit");
         }
         try {
           await updateProject(input.id, input);
@@ -54,8 +55,8 @@ export const appRouter = router({
     delete: publicProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user) {
-          throw new Error("Unauthorized");
+        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
+          throw new Error("Unauthorized: Only the owner can delete");
         }
         try {
           await deleteProject(input.id);
@@ -160,8 +161,8 @@ export const appRouter = router({
         status: z.enum(["draft", "published"]).default("draft"),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user) {
-          throw new Error("Unauthorized");
+        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
+          throw new Error("Unauthorized: Only the owner can create articles");
         }
         try {
           const articleId = nanoid();
@@ -194,8 +195,8 @@ export const appRouter = router({
         status: z.enum(["draft", "published"]).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user) {
-          throw new Error("Unauthorized");
+        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
+          throw new Error("Unauthorized: Only the owner can edit articles");
         }
         try {
           const updateData: any = {};
@@ -220,8 +221,8 @@ export const appRouter = router({
     delete: publicProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user) {
-          throw new Error("Unauthorized");
+        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
+          throw new Error("Unauthorized: Only the owner can delete articles");
         }
         try {
           await deleteArticle(input.id);

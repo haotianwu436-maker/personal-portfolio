@@ -5,6 +5,7 @@ import { useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
+import BackToListButton from "@/components/BackToListButton";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -154,6 +155,7 @@ export default function ArticleDetail() {
       <footer className="py-8 text-center text-sm text-muted-foreground/60 border-t border-border/40">
         <p>Built slowly, with care.</p>
       </footer>
+      <BackToListButton listPath="/blog" label="返回博客列表" />
     </div>
   );
 }

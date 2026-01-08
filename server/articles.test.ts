@@ -2,6 +2,7 @@ import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { nanoid } from "nanoid";
+import { ENV } from "./_core/env";
 
 function createPublicContext(): TrpcContext {
   const ctx: TrpcContext = {
@@ -16,11 +17,11 @@ function createPublicContext(): TrpcContext {
   return ctx;
 }
 
-function createAuthContext(userId: number = 1): TrpcContext {
+function createAuthContext(userId: number = 1, openId?: string): TrpcContext {
   const ctx: TrpcContext = {
     user: {
       id: userId,
-      openId: "test-user-" + userId,
+      openId: openId || ENV.ownerOpenId || "test-owner-id",
       name: "Test User",
       email: "test@example.com",
       loginMethod: "oauth",
