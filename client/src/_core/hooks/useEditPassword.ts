@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-const EDIT_PASSWORD = "admin123"; // 编辑密码，可以改成你想要的密码
+const EDIT_PASSWORD = "dlxbxy"; // 编辑密码，可以改成你想要的密码
 const PASSWORD_STORAGE_KEY = "edit-password-verified";
 const PASSWORD_EXPIRY_TIME = 30 * 60 * 1000; // 30分钟过期
 
