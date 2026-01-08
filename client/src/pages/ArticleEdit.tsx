@@ -6,16 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import MarkdownEditor from "@/components/MarkdownEditor";
+import PasswordDialog from "@/components/PasswordDialog";
 import { ArrowLeft, Loader2, Trash2, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useEditPassword } from "@/_core/hooks/useEditPassword";
 
 export default function ArticleEdit() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { user, loading: isAuthLoading } = useAuth();
+  const { isVerified, verify } = useEditPassword();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -31,28 +33,28 @@ export default function ArticleEdit() {
   // 获取文章数据
   const { data: article, isLoading: isLoadingArticle } = trpc.articles.getById.useQuery(
     { id: id! },
-    { enabled: !!id && !!user }
+    { enabled: !!id }
   );
 
   // 更新文章
   const updateMutation = trpc.articles.update.useMutation({
     onSuccess: () => {
-      toast.success("文章已更新");
+      toast.success("Article updated successfully");
       navigate(`/articles/${formData.slug}`);
     },
     onError: (error) => {
-      toast.error(error.message || "更新失败");
+      toast.error(error.message || "Failed to update article");
     },
   });
 
   // 删除文章
   const deleteMutation = trpc.articles.delete.useMutation({
     onSuccess: () => {
-      toast.success("文章已删除");
+      toast.success("Article deleted successfully");
       navigate("/blog");
     },
     onError: (error) => {
-      toast.error(error.message || "删除失败");
+      toast.error(error.message || "Failed to delete article");
     },
   });
 
@@ -88,8 +90,13 @@ export default function ArticleEdit() {
   };
 
   const handleSave = async () => {
+    if (!isVerified) {
+      setShowPasswordDialog(true);
+      return;
+    }
+
     if (!formData.title.trim() || !formData.slug.trim() || !formData.content.trim()) {
-      toast.error("请填写所有必填字段");
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -105,40 +112,30 @@ export default function ArticleEdit() {
   };
 
   const handleDelete = () => {
-    if (confirm("确定要删除这篇文章吗？此操作无法撤销。")) {
+    if (!isVerified) {
+      setShowPasswordDialog(true);
+      return;
+    }
+
+    if (confirm("Are you sure you want to delete this article? This action cannot be undone.")) {
       deleteMutation.mutate({ id: id! });
     }
   };
 
+  const handlePasswordVerify = (password: string) => {
+    if (verify(password)) {
+      setShowPasswordDialog(false);
+      toast.success("Password verified! You can now edit.");
+    } else {
+      toast.error("Incorrect password");
+    }
+  };
+
   // 加载中
-  if (isAuthLoading || isLoadingArticle) {
+  if (isLoadingArticle) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin" size={32} />
-      </div>
-    );
-  }
-
-  // 未登录
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="container max-w-2xl">
-          <Card className="p-12 text-center space-y-6">
-            <div className="flex justify-center">
-              <Lock size={48} className="text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">需要登录</h1>
-              <p className="text-foreground/60 mb-6">
-                只有网站所有者才能编辑文章。请先登录。
-              </p>
-              <Button onClick={() => navigate("/")}>
-                返回首页
-              </Button>
-            </div>
-          </Card>
-        </div>
       </div>
     );
   }
@@ -148,9 +145,44 @@ export default function ArticleEdit() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">文章未找到</h1>
-          <Button onClick={() => navigate("/blog")}>返回博客</Button>
+          <h1 className="text-2xl font-bold mb-4">Article not found</h1>
+          <Button onClick={() => navigate("/blog")}>Back to blog</Button>
         </div>
+      </div>
+    );
+  }
+
+  // 未验证密码
+  if (!isVerified) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="container max-w-2xl">
+          <Card className="p-12 text-center space-y-6">
+            <div className="flex justify-center">
+              <Lock size={48} className="text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Password Required</h1>
+              <p className="text-foreground/60 mb-6">
+                This article is password protected. Enter the password to edit.
+              </p>
+              <Button 
+                onClick={() => setShowPasswordDialog(true)}
+                size="lg"
+              >
+                Enter Password
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        <PasswordDialog
+          isOpen={showPasswordDialog}
+          onVerify={handlePasswordVerify}
+          onClose={() => setShowPasswordDialog(false)}
+          title="Edit Password"
+          description="Enter the password to edit this article"
+        />
       </div>
     );
   }
@@ -166,20 +198,20 @@ export default function ArticleEdit() {
             onClick={() => navigate(`/articles/${formData.slug}`)}
           >
             <ArrowLeft size={16} className="mr-2" />
-            返回
+            Back
           </Button>
-          <h1 className="text-3xl font-bold">编辑文章</h1>
+          <h1 className="text-3xl font-bold">Edit Article</h1>
         </div>
 
         {/* Form */}
         <Card className="p-8 space-y-6">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium mb-2">标题</label>
+            <label className="block text-sm font-medium mb-2">Title</label>
             <Input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="文章标题"
+              placeholder="Article title"
               className="w-full"
             />
           </div>
@@ -197,11 +229,11 @@ export default function ArticleEdit() {
 
           {/* Excerpt */}
           <div>
-            <label className="block text-sm font-medium mb-2">摘要</label>
+            <label className="block text-sm font-medium mb-2">Excerpt</label>
             <Textarea
               value={formData.excerpt}
               onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-              placeholder="文章摘要"
+              placeholder="Article excerpt"
               rows={3}
               className="w-full"
             />
@@ -209,17 +241,17 @@ export default function ArticleEdit() {
 
           {/* Content */}
           <div>
-            <label className="block text-sm font-medium mb-2">内容</label>
+            <label className="block text-sm font-medium mb-2">Content</label>
             <MarkdownEditor
               value={formData.content}
               onChange={(content) => setFormData({ ...formData, content })}
-              placeholder="用 Markdown 编写文章内容..."
+              placeholder="Write your article in Markdown..."
             />
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium mb-2">标签</label>
+            <label className="block text-sm font-medium mb-2">Tags</label>
             <div className="flex gap-2 mb-3">
               <Input
                 value={tagInput}
@@ -230,11 +262,11 @@ export default function ArticleEdit() {
                     handleAddTag();
                   }
                 }}
-                placeholder="添加标签，按 Enter 确认"
+                placeholder="Add tags, press Enter to confirm"
                 className="flex-1"
               />
               <Button onClick={handleAddTag} variant="outline">
-                添加
+                Add
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -257,7 +289,7 @@ export default function ArticleEdit() {
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium mb-2">状态</label>
+            <label className="block text-sm font-medium mb-2">Status</label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -273,7 +305,7 @@ export default function ArticleEdit() {
                   }
                   className="w-4 h-4"
                 />
-                <span>草稿</span>
+                <span>Draft</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -289,7 +321,7 @@ export default function ArticleEdit() {
                   }
                   className="w-4 h-4"
                 />
-                <span>已发布</span>
+                <span>Published</span>
               </label>
             </div>
           </div>
@@ -304,10 +336,10 @@ export default function ArticleEdit() {
               {isSaving ? (
                 <>
                   <Loader2 className="animate-spin mr-2" size={16} />
-                  保存中...
+                  Saving...
                 </>
               ) : (
-                "保存更改"
+                "Save Changes"
               )}
             </Button>
             <Button
@@ -315,7 +347,7 @@ export default function ArticleEdit() {
               variant="outline"
               className="flex-1"
             >
-              取消
+              Cancel
             </Button>
             <Button
               onClick={handleDelete}
@@ -327,7 +359,7 @@ export default function ArticleEdit() {
               ) : (
                 <Trash2 size={16} className="mr-2" />
               )}
-              删除
+              Delete
             </Button>
           </div>
         </Card>

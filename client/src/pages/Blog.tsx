@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
-import { ArrowUpRight, Calendar } from "lucide-react";
+import { ArrowUpRight, Calendar, Edit2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { useEditPassword } from "@/_core/hooks/useEditPassword";
+import PasswordDialog from "@/components/PasswordDialog";
+import { useState } from "react";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -11,7 +14,30 @@ const fadeInUp = {
 
 export default function Blog() {
   const [, navigate] = useLocation();
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
+  const { isVerified, verify } = useEditPassword();
   const { data: articles = [], isLoading } = trpc.articles.list.useQuery();
+
+  const handleEditClick = (articleId: string) => {
+    if (isVerified) {
+      navigate(`/articles/${articleId}/edit`);
+    } else {
+      setSelectedArticleId(articleId);
+      setShowPasswordDialog(true);
+    }
+  };
+
+  const handlePasswordVerify = (password: string) => {
+    if (verify(password)) {
+      setShowPasswordDialog(false);
+      if (selectedArticleId) {
+        navigate(`/articles/${selectedArticleId}/edit`);
+      }
+    } else {
+      throw new Error("Incorrect password");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -84,10 +110,24 @@ export default function Blog() {
                       <h2 className="text-2xl md:text-3xl font-serif group-hover:text-primary transition-colors">
                         {article.title}
                       </h2>
-                      <ArrowUpRight
-                        size={20}
-                        className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1"
-                      />
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClick(article.id);
+                          }}
+                          className="gap-1"
+                        >
+                          <Edit2 size={16} />
+                          Edit
+                        </Button>
+                        <ArrowUpRight
+                          size={20}
+                          className="text-primary flex-shrink-0 mt-1"
+                        />
+                      </div>
                     </div>
 
                     <p className="text-muted-foreground font-light mb-4 line-clamp-2">
@@ -128,6 +168,14 @@ export default function Blog() {
           )}
         </section>
       </main>
+
+      <PasswordDialog
+        isOpen={showPasswordDialog}
+        onVerify={handlePasswordVerify}
+        onClose={() => setShowPasswordDialog(false)}
+        title="Edit Password"
+        description="Enter the password to edit articles"
+      />
 
       {/* Footer */}
       <footer className="py-8 text-center text-sm text-muted-foreground/60 border-t border-border/40">
