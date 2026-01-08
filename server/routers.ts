@@ -3,7 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { getAllProjects, getProjectById, createContactSubmission, getAllContactSubmissions, getContactSubmissionById, updateContactSubmission, deleteContactSubmission, getAllPublishedArticles, getArticleBySlug, getArticleById, createArticle, updateArticle, deleteArticle } from "./db";
+import { getAllProjects, getProjectById, createContactSubmission, getAllContactSubmissions, getContactSubmissionById, updateContactSubmission, deleteContactSubmission, getAllPublishedArticles, getArticleBySlug, getArticleById, createArticle, updateArticle, deleteArticle, updateProject, deleteProject } from "./db";
 import { nanoid } from "nanoid";
 
 export const appRouter = router({
@@ -27,6 +27,43 @@ export const appRouter = router({
       .input(z.object({ id: z.string() }))
       .query(async ({ input }) => {
         return await getProjectById(input.id);
+      }),
+    update: publicProcedure
+      .input(z.object({
+        id: z.string(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        role: z.string().optional(),
+        content: z.string().optional(),
+        highlights: z.array(z.string()).optional(),
+        learnings: z.array(z.string()).optional(),
+        tags: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user) {
+          throw new Error("Unauthorized");
+        }
+        try {
+          await updateProject(input.id, input);
+          return { success: true };
+        } catch (error) {
+          console.error("Failed to update project:", error);
+          throw new Error("Failed to update project");
+        }
+      }),
+    delete: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user) {
+          throw new Error("Unauthorized");
+        }
+        try {
+          await deleteProject(input.id);
+          return { success: true };
+        } catch (error) {
+          console.error("Failed to delete project:", error);
+          throw new Error("Failed to delete project");
+        }
       }),
   }),
 

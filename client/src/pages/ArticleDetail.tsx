@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { Calendar, ArrowLeft, Edit } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -70,9 +70,15 @@ export default function ArticleDetail() {
               animate="visible"
               variants={fadeInUp}
             >
-              <h1 className="text-4xl md:text-5xl font-serif mb-6">
+              <div className="flex items-center justify-between mb-6">
+              <h1 className="text-4xl md:text-5xl font-serif">
                 {article.title}
               </h1>
+              <Button onClick={() => navigate(`/articles/${article.id}/edit`)} size="sm">
+                <Edit size={16} className="mr-2" />
+                编辑
+              </Button>
+            </div>
 
               <div className="flex flex-wrap items-center gap-4 mb-8 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
@@ -102,7 +108,7 @@ export default function ArticleDetail() {
                 )}
               </div>
 
-              <p className="text-xl text-muted-foreground font-light leading-relaxed">
+              <p className="text-xl text-muted-foreground font-light leading-relaxed mt-6">
                 {article.excerpt}
               </p>
             </motion.div>

@@ -9,6 +9,8 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Blog from "./pages/Blog";
 import ArticleDetail from "./pages/ArticleDetail";
 import Messages from "./pages/Messages";
+import ArticleEdit from "./pages/ArticleEdit";
+import ProjectEdit from "./pages/ProjectEdit";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -16,8 +18,10 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/projects/:id" component={ProjectDetail} />
+      <Route path="/projects/:id/edit" component={ProjectEdit} />
       <Route path="/blog" component={Blog} />
       <Route path="/articles/:slug" component={ArticleDetail} />
+      <Route path="/articles/:id/edit" component={ArticleEdit} />
       <Route path="/messages" component={Messages} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}

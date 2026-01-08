@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,13 @@ export default function ProjectDetail() {
               variants={fadeInUp}
               className="mb-12"
             >
-              <h1 className="text-4xl md:text-5xl font-serif mb-4">{project.title}</h1>
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-4xl md:text-5xl font-serif">{project.title}</h1>
+                <Button onClick={() => navigate(`/projects/${project.id}/edit`)} size="sm">
+                  <Edit size={16} className="mr-2" />
+                  编辑
+                </Button>
+              </div>
               <p className="text-xl text-muted-foreground font-light mb-6">{project.subtitle}</p>
               <div className="flex flex-col gap-4">
                 <div>

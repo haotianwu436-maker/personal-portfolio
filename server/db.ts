@@ -139,6 +139,49 @@ export async function getProjectById(id: string) {
   }
 }
 
+export async function updateProject(id: string, data: any) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update project: database not available");
+    return undefined;
+  }
+
+  try {
+    const updateData: any = { ...data };
+    if (data.tags) {
+      updateData.tags = JSON.stringify(data.tags);
+    }
+    if (data.highlights) {
+      updateData.highlights = JSON.stringify(data.highlights);
+    }
+    if (data.learnings) {
+      updateData.learnings = JSON.stringify(data.learnings);
+    }
+    
+    await db.update(projects).set(updateData).where(eq(projects.id, id));
+    return { success: true };
+  } catch (error) {
+    console.error("[Database] Failed to update project:", error);
+    throw error;
+  }
+}
+
+export async function deleteProject(id: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete project: database not available");
+    return undefined;
+  }
+
+  try {
+    await db.delete(projects).where(eq(projects.id, id));
+    return { success: true };
+  } catch (error) {
+    console.error("[Database] Failed to delete project:", error);
+    throw error;
+  }
+}
+
 // Contact submission queries
 export async function createContactSubmission(data: InsertContactSubmission) {
   const db = await getDb();
