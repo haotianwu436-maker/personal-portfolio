@@ -6,6 +6,9 @@ import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import LatestArticles from "@/components/LatestArticles";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { toast } from "sonner";
 
 // Animation variants
 const fadeInUp = {
@@ -28,6 +31,7 @@ export default function Home() {
   // The userAuth hooks provides authentication state
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
   let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const { t } = useLanguage();
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -53,20 +57,21 @@ export default function Home() {
         <div className="container flex justify-between items-center">
           <span className="font-serif text-lg font-medium tracking-tight">Personal Portfolio</span>
           <nav className="hidden md:flex gap-8 text-sm text-muted-foreground items-center">
-            <button onClick={() => scrollToSection('about')} className="hover:text-primary transition-colors">About</button>
-            <button onClick={() => scrollToSection('projects')} className="hover:text-primary transition-colors">Projects</button>
-            <button onClick={() => scrollToSection('contact')} className="hover:text-primary transition-colors">Contact</button>
+            <button onClick={() => scrollToSection('about')} className="hover:text-primary transition-colors">{t.nav.about}</button>
+            <button onClick={() => scrollToSection('projects')} className="hover:text-primary transition-colors">{t.nav.projects}</button>
+            <button onClick={() => scrollToSection('contact')} className="hover:text-primary transition-colors">{t.nav.contact}</button>
             <div className="w-px h-4 bg-border/40"></div>
+            <LanguageToggle />
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground">logged in</span>
+                <span className="text-xs text-muted-foreground">{t.nav.loggedIn}</span>
                 <Button 
                   size="sm"
                   variant="outline"
                   onClick={() => navigate('/admin/articles')}
                   className="text-xs"
                 >
-                  Manage
+                  {t.nav.manage}
                 </Button>
                 <Button 
                   size="sm"
@@ -74,7 +79,7 @@ export default function Home() {
                   onClick={logout}
                   className="text-xs"
                 >
-                  Logout
+                  {t.nav.logout}
                 </Button>
               </div>
             ) : (
@@ -83,7 +88,7 @@ export default function Home() {
                 onClick={() => navigate('/login')}
                 className="text-xs"
               >
-                Login
+                {t.nav.login}
               </Button>
             )}
           </nav>
@@ -105,14 +110,12 @@ export default function Home() {
               variants={staggerContainer}
               className="max-w-2xl"
             >
-              <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-serif font-light leading-[1.1] mb-6">
-                半梦半醒<br />
-                <span className="italic text-primary/90">永远年轻</span>，<br />
-                永远热泪盈眶
+              <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-serif font-light leading-[1.1] mb-6 whitespace-pre-line">
+                {t.hero.title}
               </motion.h1>
               
               <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-muted-foreground font-light mb-12 max-w-lg">
-                我在做社区、文化与技术之间的连接
+                {t.hero.subtitle}
               </motion.p>
               
               <motion.div variants={fadeInUp} className="flex gap-4">
@@ -120,14 +123,14 @@ export default function Home() {
                   onClick={() => scrollToSection('projects')}
                   className="rounded-full px-8 py-6 text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30"
                 >
-                  查看项目
+                  {t.hero.viewProjects}
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => scrollToSection('contact')}
                   className="rounded-full px-8 py-6 text-base border-primary/20 hover:bg-primary/5 hover:text-primary transition-all duration-300"
                 >
-                  联系我
+                  {t.hero.contactMe}
                 </Button>
               </motion.div>
             </motion.div>
@@ -153,23 +156,23 @@ export default function Home() {
               variants={staggerContainer}
               className="max-w-2xl mx-auto"
             >
-              <motion.span variants={fadeInUp} className="text-sm font-medium text-primary tracking-widest uppercase mb-4 block">About Me</motion.span>
-              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl mb-12">关于我</motion.h2>
+              <motion.span variants={fadeInUp} className="text-sm font-medium text-primary tracking-widest uppercase mb-4 block">{t.about.subtitle}</motion.span>
+              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl mb-12">{t.about.title}</motion.h2>
               
               <div className="space-y-6 text-lg text-muted-foreground font-light leading-relaxed">
                 <motion.p variants={fadeInUp}>
-                  我关注人与人之间的连接，相信微小的善意可以汇聚成巨大的能量。
+                  {t.about.paragraph1}
                 </motion.p>
                 <motion.p variants={fadeInUp}>
-                  我做项目，但更在意过程中的“人”与“温度”，技术是实现方式，而非目的。
+                  {t.about.paragraph2}
                 </motion.p>
                 <motion.p variants={fadeInUp}>
-                  我相信社区、文化与技术可以共存，并致力于探索它们之间有机结合的可能性。
+                  {t.about.paragraph3}
                 </motion.p>
               </div>
 
               <motion.div variants={fadeInUp} className="mt-12 flex flex-wrap gap-3">
-                {["社区", "文化", "区块链", "实验性项目", "长期主义"].map((tag) => (
+                {t.about.tags.map((tag) => (
                   <span key={tag} className="px-4 py-2 rounded-full bg-background border border-border text-sm text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors cursor-default">
                     {tag}
                   </span>
@@ -189,8 +192,8 @@ export default function Home() {
               variants={fadeInUp}
               className="mb-16 md:mb-24"
             >
-              <span className="text-sm font-medium text-primary tracking-widest uppercase mb-4 block">Selected Works</span>
-              <h2 className="text-3xl md:text-4xl">我的实践</h2>
+              <span className="text-sm font-medium text-primary tracking-widest uppercase mb-4 block">{t.projects.subtitle}</span>
+              <h2 className="text-3xl md:text-4xl">{t.projects.title}</h2>
             </motion.div>
 
             <div className="space-y-24 md:space-y-32">
@@ -212,9 +215,9 @@ export default function Home() {
               variants={staggerContainer}
               className="text-center mb-16"
             >
-              <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl font-serif mb-8">Let's Connect</motion.h2>
-              <motion.p variants={fadeInUp} className="text-xl text-muted-foreground font-light mb-12">
-                如果你对社区、文化或长期建设感兴趣，<br/>欢迎联系我，一同探索更多可能。
+              <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl font-serif mb-8">{t.contact.title}</motion.h2>
+              <motion.p variants={fadeInUp} className="text-xl text-muted-foreground font-light mb-12 whitespace-pre-line">
+                {t.contact.subtitle}
               </motion.p>
               
               {/* Contact Info */}
@@ -260,7 +263,7 @@ export default function Home() {
       </main>
 
       <footer className="py-8 text-center text-sm text-muted-foreground/60 border-t border-border/40">
-        <p>Built slowly, with care.</p>
+        <p>{t.footer.text}</p>
       </footer>
     </div>
   );
@@ -299,6 +302,7 @@ function ProjectCard({ id, title, role, description, tags, image, align = "left"
   align?: "left" | "right",
   onLearnMore?: () => void
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div 
       initial={{ opacity: 0, y: 40 }}
@@ -335,7 +339,7 @@ function ProjectCard({ id, title, role, description, tags, image, align = "left"
         </div>
 
         <Button variant="link" className="p-0 h-auto text-primary hover:text-primary/80 group" onClick={onLearnMore}>
-          了解更多 <ArrowUpRight size={16} className="ml-1 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+          {t.projects.viewDetails} <ArrowUpRight size={16} className="ml-1 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
         </Button>
       </div>
     </motion.div>
@@ -343,6 +347,7 @@ function ProjectCard({ id, title, role, description, tags, image, align = "left"
 }
 
 function ContactForm() {
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -356,16 +361,17 @@ function ContactForm() {
     onSuccess: () => {
       setSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
+      toast.success(t.contact.success);
     },
     onError: (error) => {
-      alert("发送失败，请稍后重试");
+      toast.error(t.contact.error);
     }
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
-      alert("请填写必填项");
+      toast.error("Please fill in required fields");
       return;
     }
     setIsSubmitting(true);
@@ -386,16 +392,16 @@ function ContactForm() {
         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
           <Send size={24} className="text-primary" />
         </div>
-        <h3 className="text-2xl font-serif mb-4">消息已发送</h3>
+        <h3 className="text-2xl font-serif mb-4">{t.contact.success}</h3>
         <p className="text-muted-foreground font-light mb-6">
-          感谢你的留言，我会尽快回复你。
+          {language === "zh" ? "感谢你的留言，我会尽快回复你。" : "Thank you for your message. I'll get back to you soon."}
         </p>
         <Button 
           variant="outline" 
           onClick={() => setSubmitted(false)}
           className="rounded-full"
         >
-          发送另一条消息
+          {language === "zh" ? "发送另一条消息" : "Send Another Message"}
         </Button>
       </motion.div>
     );
@@ -409,26 +415,26 @@ function ContactForm() {
       transition={{ duration: 0.8 }}
       className="bg-secondary/50 rounded-2xl p-8 md:p-12"
     >
-      <h3 className="text-2xl font-serif mb-2 text-center">给我留言</h3>
+      <h3 className="text-2xl font-serif mb-2 text-center">{language === "zh" ? "给我留言" : "Leave a Message"}</h3>
       <p className="text-muted-foreground font-light mb-8 text-center">
-        有任何想法或合作意向，欢迎留言
+        {language === "zh" ? "有任何想法或合作意向，欢迎留言" : "Feel free to leave a message if you have any ideas or collaboration intentions"}
       </p>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium mb-2">姓名 *</label>
+            <label className="block text-sm font-medium mb-2">{t.contact.name} *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="你的名字"
+              placeholder={language === "zh" ? "你的名字" : "Your name"}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">邮箱 *</label>
+            <label className="block text-sm font-medium mb-2">{t.contact.email} *</label>
             <input
               type="email"
               value={formData.email}
@@ -441,24 +447,24 @@ function ContactForm() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-2">主题</label>
+          <label className="block text-sm font-medium mb-2">{language === "zh" ? "主题" : "Subject"}</label>
           <input
             type="text"
             value={formData.subject}
             onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
             className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            placeholder="你想聊什么？"
+            placeholder={language === "zh" ? "你想聊什么？" : "What would you like to discuss?"}
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-2">消息 *</label>
+          <label className="block text-sm font-medium mb-2">{t.contact.message} *</label>
           <textarea
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
             rows={5}
             className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-            placeholder="写下你的想法..."
+            placeholder={language === "zh" ? "写下你的想法..." : "Write your thoughts..."}
             required
           />
         </div>
@@ -469,7 +475,7 @@ function ContactForm() {
             disabled={isSubmitting}
             className="rounded-full px-12 py-6 text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30"
           >
-            {isSubmitting ? "发送中..." : "发送消息"}
+            {isSubmitting ? t.contact.sending : t.contact.send}
             <Send size={16} className="ml-2" />
           </Button>
         </div>

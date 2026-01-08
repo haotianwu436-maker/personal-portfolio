@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -11,6 +12,7 @@ const fadeInUp = {
 
 export default function LatestArticles() {
   const [, navigate] = useLocation();
+  const { t, language } = useLanguage();
   const { data: articles = [] } = trpc.articles.list.useQuery();
 
   // Get the 3 most recent published articles
@@ -34,16 +36,16 @@ export default function LatestArticles() {
           className="mb-16 md:mb-24"
         >
           <span className="text-sm font-medium text-primary tracking-widest uppercase mb-4 block">
-            一些想法
+            {t.articles.title}
           </span>
           <div className="flex items-center justify-between">
-            <h2 className="text-3xl md:text-4xl">最新文章</h2>
+            <h2 className="text-3xl md:text-4xl">{t.articles.latest}</h2>
             <Button
               onClick={() => navigate("/blog")}
               variant="link"
               className="text-primary hover:text-primary/80"
             >
-              查看全部 <ArrowUpRight size={16} className="ml-2" />
+              {t.articles.readAll} <ArrowUpRight size={16} className="ml-2" />
             </Button>
           </div>
         </motion.div>
@@ -76,7 +78,7 @@ export default function LatestArticles() {
 
                 <div className="flex items-center justify-between pt-4 border-t border-border/40">
                   <time className="text-xs text-muted-foreground">
-                    {new Date(article.publishedAt || 0).toLocaleDateString('zh-CN')}
+                    {new Date(article.publishedAt || 0).toLocaleDateString(language === "zh" ? "zh-CN" : "en-US")}
                   </time>
                   {article.tags && article.tags.length > 0 && (
                     <div className="flex gap-1">
