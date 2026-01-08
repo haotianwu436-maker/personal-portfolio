@@ -9,11 +9,15 @@ import MarkdownEditor from "@/components/MarkdownEditor";
 import { ArrowLeft, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useEditPassword } from "@/_core/hooks/useEditPassword";
+import PasswordDialog from "@/components/PasswordDialog";
 
 export default function ArticleCreate() {
   const [, navigate] = useLocation();
   const { user, loading: isAuthLoading } = useAuth();
+  const { isVerified, verify, getPassword } = useEditPassword();
   const [isSaving, setIsSaving] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -55,16 +59,36 @@ export default function ArticleCreate() {
   };
 
   const handleSave = async () => {
+    if (!isVerified) {
+      setShowPasswordDialog(true);
+      return;
+    }
+
     if (!formData.title.trim() || !formData.slug.trim() || !formData.content.trim()) {
       toast.error("请填写所有必填字段");
       return;
     }
 
+    const password = getPassword();
+    const saveData = {
+      ...formData,
+      password: password || undefined,
+    };
+
     setIsSaving(true);
     try {
-      await createMutation.mutateAsync(formData);
+      await createMutation.mutateAsync(saveData);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePasswordVerify = (password: string) => {
+    if (verify(password)) {
+      setShowPasswordDialog(false);
+      toast.success("密码验证成功！");
+    } else {
+      toast.error("密码不正确");
     }
   };
 
@@ -97,6 +121,41 @@ export default function ArticleCreate() {
             </div>
           </Card>
         </div>
+      </div>
+    );
+  }
+
+  // 未验证密码
+  if (!isVerified) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="container max-w-2xl">
+          <Card className="p-12 text-center space-y-6">
+            <div className="flex justify-center">
+              <Lock size={48} className="text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">需要密码验证</h1>
+              <p className="text-foreground/60 mb-6">
+                创建文章需要输入编辑密码。
+              </p>
+              <Button 
+                onClick={() => setShowPasswordDialog(true)}
+                size="lg"
+              >
+                输入密码
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        <PasswordDialog
+          isOpen={showPasswordDialog}
+          onVerify={handlePasswordVerify}
+          onClose={() => setShowPasswordDialog(false)}
+          title="编辑密码"
+          description="输入密码以创建文章"
+        />
       </div>
     );
   }
@@ -271,6 +330,14 @@ export default function ArticleCreate() {
             </Button>
           </div>
         </Card>
+
+        <PasswordDialog
+          isOpen={showPasswordDialog}
+          onVerify={handlePasswordVerify}
+          onClose={() => setShowPasswordDialog(false)}
+          title="编辑密码"
+          description="输入密码以创建文章"
+        />
 
         {/* Help Text */}
         <div className="mt-8 p-6 bg-primary/5 rounded-lg border border-primary/10">

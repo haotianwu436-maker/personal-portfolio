@@ -14,7 +14,7 @@ import { useEditPassword } from "@/_core/hooks/useEditPassword";
 export default function ArticleEdit() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { isVerified, verify, canPublish } = useEditPassword();
+  const { isVerified, verify, canPublish, getPassword } = useEditPassword();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -101,10 +101,12 @@ export default function ArticleEdit() {
     }
 
     // 编辑密码不能发布，只能保存为草稿
+    const password = getPassword();
     const saveData = {
       id: id!,
       ...formData,
       status: canPublish ? formData.status : "draft" as const,
+      password: password || undefined,
     };
 
     setIsSaving(true);
@@ -125,7 +127,8 @@ export default function ArticleEdit() {
     }
 
     if (confirm("Are you sure you want to delete this article? This action cannot be undone.")) {
-      deleteMutation.mutate({ id: id! });
+      const password = getPassword();
+      deleteMutation.mutate({ id: id!, password: password || undefined });
     }
   };
 
