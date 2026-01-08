@@ -52,10 +52,40 @@ export default function Home() {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/80 backdrop-blur-md py-4 border-b border-border/40" : "py-8 bg-transparent"}`}>
         <div className="container flex justify-between items-center">
           <span className="font-serif text-lg font-medium tracking-tight">Personal Portfolio</span>
-          <nav className="hidden md:flex gap-8 text-sm text-muted-foreground">
+          <nav className="hidden md:flex gap-8 text-sm text-muted-foreground items-center">
             <button onClick={() => scrollToSection('about')} className="hover:text-primary transition-colors">About</button>
             <button onClick={() => scrollToSection('projects')} className="hover:text-primary transition-colors">Projects</button>
             <button onClick={() => scrollToSection('contact')} className="hover:text-primary transition-colors">Contact</button>
+            <div className="w-px h-4 bg-border/40"></div>
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">logged in</span>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/admin/articles')}
+                  className="text-xs"
+                >
+                  Manage
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="ghost"
+                  onClick={logout}
+                  className="text-xs"
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                size="sm"
+                onClick={() => navigate('/login')}
+                className="text-xs"
+              >
+                Login
+              </Button>
+            )}
           </nav>
         </div>
       </header>

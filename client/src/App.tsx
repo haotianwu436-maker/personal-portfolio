@@ -12,6 +12,7 @@ import Messages from "./pages/Messages";
 import ArticleEdit from "./pages/ArticleEdit";
 import ArticleCreate from "./pages/ArticleCreate";
 import ArticleManagement from "./pages/ArticleManagement";
+import Login from "./pages/Login";
 import ProjectEdit from "./pages/ProjectEdit";
 
 function Router() {
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/admin/articles/create" component={ArticleCreate} />
       <Route path="/admin/articles/:id/edit" component={ArticleEdit} />
       <Route path="/admin/articles" component={ArticleManagement} />
+      <Route path="/login" component={Login} />
       <Route path="/messages" component={Messages} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
