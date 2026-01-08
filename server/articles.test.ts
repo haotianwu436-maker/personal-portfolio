@@ -54,7 +54,7 @@ describe("articles router", () => {
   });
 
   it("should create an article when authenticated", async () => {
-    const ctx = createAuthContext();
+    const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.articles.create({
@@ -64,6 +64,7 @@ describe("articles router", () => {
       content: "# Test Article\n\nThis is the content of the test article.",
       tags: ["test", "blog"],
       status: "draft",
+      password: "dlxbxy",
     });
 
     expect(result.success).toBe(true);
@@ -71,7 +72,7 @@ describe("articles router", () => {
     testArticleId = result.id;
   });
 
-  it("should not create article without authentication", async () => {
+  it("should not create article without password", async () => {
     const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
 
@@ -81,6 +82,7 @@ describe("articles router", () => {
         slug: "unauthorized-article",
         excerpt: "This should fail",
         content: "This should fail",
+        password: "wrong-password",
       });
       expect.fail("Should have thrown an error");
     } catch (error) {
@@ -93,7 +95,7 @@ describe("articles router", () => {
     const caller = appRouter.createCaller(ctx);
 
     // First create a published article
-    const authCtx = createAuthContext();
+    const authCtx = createPublicContext();
     const authCaller = appRouter.createCaller(authCtx);
 
     const publishedSlug = "published-article-" + nanoid();
@@ -103,6 +105,7 @@ describe("articles router", () => {
       excerpt: "This is published",
       content: "# Published\n\nPublished content",
       status: "published",
+      password: "dlxbxy",
     });
 
     // Then retrieve it
@@ -114,13 +117,14 @@ describe("articles router", () => {
   });
 
   it("should update article when authenticated", async () => {
-    const ctx = createAuthContext();
+    const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.articles.update({
       id: testArticleId,
       title: "Updated Title",
       status: "published",
+      password: "dlxbxy",
     });
 
     expect(result.success).toBe(true);
@@ -141,12 +145,13 @@ describe("articles router", () => {
       slug: "delete-me-" + nanoid(),
       excerpt: "This will be deleted",
       content: "Delete this",
+      password: "dlxbxy",
     });
 
     const articleIdToDelete = result.id;
 
     // Delete it
-    const deleteResult = await caller.articles.delete({ id: articleIdToDelete });
+    const deleteResult = await caller.articles.delete({ id: articleIdToDelete, password: "dlxbxy" });
     expect(deleteResult.success).toBe(true);
 
     // Verify it's deleted
@@ -167,7 +172,7 @@ describe("articles router", () => {
   });
 
   it("should parse tags correctly", async () => {
-    const ctx = createAuthContext();
+    const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.articles.create({
@@ -177,6 +182,7 @@ describe("articles router", () => {
       content: "# Tags Test",
       tags: ["community", "culture", "technology"],
       status: "draft",
+      password: "dlxbxy",
     });
 
     const article = await caller.articles.getById({ id: result.id });

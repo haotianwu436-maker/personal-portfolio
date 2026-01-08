@@ -159,10 +159,13 @@ export const appRouter = router({
         content: z.string().min(1, "Content is required"),
         tags: z.array(z.string()).optional(),
         status: z.enum(["draft", "published"]).default("draft"),
+        password: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
-          throw new Error("Unauthorized: Only the owner can create articles");
+        // Password-based authentication (no OAuth required)
+        const EDIT_PASSWORD = "dlxbxy";
+        if (!input.password || input.password !== EDIT_PASSWORD) {
+          throw new Error("Unauthorized: Invalid password");
         }
         try {
           const articleId = nanoid();
@@ -173,7 +176,7 @@ export const appRouter = router({
             slug: input.slug,
             excerpt: input.excerpt,
             content: input.content,
-            authorId: ctx.user.id,
+            authorId: 1,
             status: input.status,
             tags: tagsJson,
             publishedAt: input.status === "published" ? new Date() : null,
@@ -193,10 +196,13 @@ export const appRouter = router({
         content: z.string().optional(),
         tags: z.array(z.string()).optional(),
         status: z.enum(["draft", "published"]).optional(),
+        password: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
-          throw new Error("Unauthorized: Only the owner can edit articles");
+        // Password-based authentication (no OAuth required)
+        const EDIT_PASSWORD = "dlxbxy";
+        if (!input.password || input.password !== EDIT_PASSWORD) {
+          throw new Error("Unauthorized: Invalid password");
         }
         try {
           const updateData: any = {};
@@ -219,10 +225,12 @@ export const appRouter = router({
         }
       }),
     delete: publicProcedure
-      .input(z.object({ id: z.string() }))
+      .input(z.object({ id: z.string(), password: z.string().optional() }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user || ctx.user.openId !== ENV.ownerOpenId) {
-          throw new Error("Unauthorized: Only the owner can delete articles");
+        // Password-based authentication (no OAuth required)
+        const EDIT_PASSWORD = "dlxbxy";
+        if (!input.password || input.password !== EDIT_PASSWORD) {
+          throw new Error("Unauthorized: Invalid password");
         }
         try {
           await deleteArticle(input.id);

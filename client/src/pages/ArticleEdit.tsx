@@ -7,17 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import MarkdownEditor from "@/components/MarkdownEditor";
 import PasswordDialog from "@/components/PasswordDialog";
-import { ArrowLeft, Loader2, Trash2, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, Lock, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useEditPassword } from "@/_core/hooks/useEditPassword";
 
 export default function ArticleEdit() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { isVerified, verify, canPublish } = useEditPassword();
+  const { isVerified, verify, canPublish, getPassword, isPublishVerified, verifyPublish, getPublishPassword } = useEditPassword();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [passwordDialogType, setPasswordDialogType] = useState<"edit" | "publish">("edit");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -91,6 +93,7 @@ export default function ArticleEdit() {
 
   const handleSave = async () => {
     if (!isVerified) {
+      setPasswordDialogType("edit");
       setShowPasswordDialog(true);
       return;
     }
@@ -100,19 +103,58 @@ export default function ArticleEdit() {
       return;
     }
 
-    // 编辑密码不能发布，只能保存为草稿
+    // 如果要发布，需要发布密码验证
+    if (formData.status === "published" && !canPublish) {
+      setPasswordDialogType("publish");
+      setShowPublishDialog(true);
+      return;
+    }
+
+    const password = getPassword();
     const saveData = {
       id: id!,
       ...formData,
-      status: canPublish ? formData.status : "draft" as const,
+      password: password || undefined,
     };
 
     setIsSaving(true);
     try {
       await updateMutation.mutateAsync(saveData);
-      if (!canPublish && formData.status === "published") {
-        toast.info("编辑密码只能保存为草稿，无法发布");
-      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!isVerified) {
+      setPasswordDialogType("edit");
+      setShowPasswordDialog(true);
+      return;
+    }
+
+    if (!canPublish) {
+      setPasswordDialogType("publish");
+      setShowPublishDialog(true);
+      return;
+    }
+
+    if (!formData.title.trim() || !formData.slug.trim() || !formData.content.trim()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const password = getPassword();
+    const publishData = {
+      id: id!,
+      ...formData,
+      status: "published" as const,
+      password: password || undefined,
+    };
+
+    setIsSaving(true);
+    try {
+      await updateMutation.mutateAsync(publishData);
+      toast.success("Article published successfully!");
     } finally {
       setIsSaving(false);
     }
@@ -120,12 +162,14 @@ export default function ArticleEdit() {
 
   const handleDelete = () => {
     if (!isVerified) {
+      setPasswordDialogType("edit");
       setShowPasswordDialog(true);
       return;
     }
 
     if (confirm("Are you sure you want to delete this article? This action cannot be undone.")) {
-      deleteMutation.mutate({ id: id! });
+      const password = getPassword();
+      deleteMutation.mutate({ id: id!, password: password || undefined });
     }
   };
 
@@ -135,6 +179,15 @@ export default function ArticleEdit() {
       toast.success("Password verified! You can now edit.");
     } else {
       toast.error("Incorrect password");
+    }
+  };
+
+  const handlePublishPasswordVerify = (password: string) => {
+    if (verifyPublish(password)) {
+      setShowPublishDialog(false);
+      toast.success("Publish password verified! You can now publish.");
+    } else {
+      toast.error("Incorrect publish password");
     }
   };
 
@@ -174,7 +227,10 @@ export default function ArticleEdit() {
                 This article is password protected. Enter the password to edit.
               </p>
               <Button 
-                onClick={() => setShowPasswordDialog(true)}
+                onClick={() => {
+                  setPasswordDialogType("edit");
+                  setShowPasswordDialog(true);
+                }}
                 size="lg"
               >
                 Enter Password
@@ -330,13 +386,13 @@ export default function ArticleEdit() {
                   className="w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <span className={!canPublish ? "opacity-50" : ""}>
-                  Published {!canPublish && "(需要发布权限)"}
+                  Published {!canPublish && "(需要发布密码)"}
                 </span>
               </label>
             </div>
             {!canPublish && (
               <p className="text-sm text-muted-foreground mt-2">
-                编辑密码只能编辑内容并保存为草稿，无法发布文章。
+                需要输入发布密码才能发布文章。点击下方"发布"按钮输入发布密码。
               </p>
             )}
           </div>
@@ -357,6 +413,25 @@ export default function ArticleEdit() {
                 "Save Changes"
               )}
             </Button>
+            {formData.status === "draft" && (
+              <Button
+                onClick={handlePublish}
+                disabled={isSaving}
+                className="flex-1"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2" size={16} />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} className="mr-2" />
+                    Publish
+                  </>
+                )}
+              </Button>
+            )}
             <Button
               onClick={() => navigate(`/articles/${formData.slug}`)}
               variant="outline"
@@ -379,6 +454,24 @@ export default function ArticleEdit() {
           </div>
         </Card>
       </div>
+
+      {/* Edit Password Dialog */}
+      <PasswordDialog
+        isOpen={showPasswordDialog}
+        onVerify={handlePasswordVerify}
+        onClose={() => setShowPasswordDialog(false)}
+        title="Edit Password"
+        description="Enter the password to edit this article"
+      />
+
+      {/* Publish Password Dialog */}
+      <PasswordDialog
+        isOpen={showPublishDialog}
+        onVerify={handlePublishPasswordVerify}
+        onClose={() => setShowPublishDialog(false)}
+        title="Publish Password"
+        description="Enter the publish password to publish this article"
+      />
     </div>
   );
 }
