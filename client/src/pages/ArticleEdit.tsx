@@ -14,7 +14,7 @@ import { useEditPassword } from "@/_core/hooks/useEditPassword";
 export default function ArticleEdit() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { isVerified, verify } = useEditPassword();
+  const { isVerified, verify, canPublish } = useEditPassword();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -100,12 +100,19 @@ export default function ArticleEdit() {
       return;
     }
 
+    // 编辑密码不能发布，只能保存为草稿
+    const saveData = {
+      id: id!,
+      ...formData,
+      status: canPublish ? formData.status : "draft" as const,
+    };
+
     setIsSaving(true);
     try {
-      await updateMutation.mutateAsync({
-        id: id!,
-        ...formData,
-      });
+      await updateMutation.mutateAsync(saveData);
+      if (!canPublish && formData.status === "published") {
+        toast.info("编辑密码只能保存为草稿，无法发布");
+      }
     } finally {
       setIsSaving(false);
     }
@@ -319,11 +326,19 @@ export default function ArticleEdit() {
                       status: e.target.value as "draft" | "published",
                     })
                   }
-                  className="w-4 h-4"
+                  disabled={!canPublish}
+                  className="w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
-                <span>Published</span>
+                <span className={!canPublish ? "opacity-50" : ""}>
+                  Published {!canPublish && "(需要发布权限)"}
+                </span>
               </label>
             </div>
+            {!canPublish && (
+              <p className="text-sm text-muted-foreground mt-2">
+                编辑密码只能编辑内容并保存为草稿，无法发布文章。
+              </p>
+            )}
           </div>
 
           {/* Actions */}

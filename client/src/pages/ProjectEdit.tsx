@@ -6,13 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import MarkdownEditor from "@/components/MarkdownEditor";
-import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
+import PasswordDialog from "@/components/PasswordDialog";
+import { ArrowLeft, Loader2, Trash2, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { useEditPassword } from "@/_core/hooks/useEditPassword";
 
 export default function ProjectEdit() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  const { isVerified, verify, canPublish } = useEditPassword();
   const [isSaving, setIsSaving] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -123,6 +127,11 @@ export default function ProjectEdit() {
   };
 
   const handleSave = async () => {
+    if (!isVerified) {
+      setShowPasswordDialog(true);
+      return;
+    }
+
     if (!formData.title.trim() || !formData.description.trim()) {
       toast.error("请填写所有必填字段");
       return;
@@ -140,8 +149,29 @@ export default function ProjectEdit() {
   };
 
   const handleDelete = () => {
+    if (!isVerified) {
+      setShowPasswordDialog(true);
+      toast.error("需要密码验证才能删除项目");
+      return;
+    }
+
+    // 编辑密码不能删除项目（删除是重要操作）
+    if (!canPublish) {
+      toast.error("编辑密码只能编辑内容，无法删除项目");
+      return;
+    }
+
     if (confirm("确定要删除这个项目吗？此操作无法撤销。")) {
       deleteMutation.mutate({ id: id! });
+    }
+  };
+
+  const handlePasswordVerify = (password: string) => {
+    if (verify(password)) {
+      setShowPasswordDialog(false);
+      toast.success("密码验证成功！现在可以编辑了。");
+    } else {
+      toast.error("密码错误");
     }
   };
 
@@ -160,6 +190,41 @@ export default function ProjectEdit() {
           <h1 className="text-2xl font-bold mb-4">项目未找到</h1>
           <Button onClick={() => navigate("/")}>返回首页</Button>
         </div>
+      </div>
+    );
+  }
+
+  // 未验证密码
+  if (!isVerified) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="container max-w-2xl">
+          <Card className="p-12 text-center space-y-6">
+            <div className="flex justify-center">
+              <Lock size={48} className="text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">需要密码验证</h1>
+              <p className="text-foreground/60 mb-6">
+                此项目受密码保护。请输入密码以编辑。
+              </p>
+              <Button 
+                onClick={() => setShowPasswordDialog(true)}
+                size="lg"
+              >
+                输入密码
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        <PasswordDialog
+          isOpen={showPasswordDialog}
+          onVerify={handlePasswordVerify}
+          onClose={() => setShowPasswordDialog(false)}
+          title="编辑密码"
+          description="请输入密码以编辑此项目"
+        />
       </div>
     );
   }
@@ -366,17 +431,33 @@ export default function ProjectEdit() {
             <Button
               onClick={handleDelete}
               variant="destructive"
-              disabled={deleteMutation.isPending}
+              disabled={deleteMutation.isPending || !canPublish}
+              title={!canPublish ? "编辑密码只能编辑内容，无法删除项目" : ""}
             >
               {deleteMutation.isPending ? (
                 <Loader2 className="animate-spin mr-2" size={16} />
               ) : (
                 <Trash2 size={16} className="mr-2" />
               )}
-              删除
+              删除 {!canPublish && "(需要发布权限)"}
             </Button>
           </div>
+          {!canPublish && (
+            <div className="pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                提示：编辑密码只能编辑项目内容，无法删除项目。
+              </p>
+            </div>
+          )}
         </Card>
+
+        <PasswordDialog
+          isOpen={showPasswordDialog}
+          onVerify={handlePasswordVerify}
+          onClose={() => setShowPasswordDialog(false)}
+          title="编辑密码"
+          description="请输入密码以编辑此项目"
+        />
       </div>
     </div>
   );

@@ -4,6 +4,8 @@ const EDIT_PASSWORD = "dlxbxy"; // 编辑密码，可以改成你想要的密码
 const PASSWORD_STORAGE_KEY = "edit-password-verified";
 const PASSWORD_EXPIRY_TIME = 30 * 60 * 1000; // 30分钟过期
 
+// 编辑密码只能编辑，不能发布
+// 如果需要发布权限，需要额外的发布密码（暂未实现）
 export function useEditPassword() {
   const [isVerified, setIsVerified] = useState(() => {
     // 检查是否已验证且未过期
@@ -46,10 +48,14 @@ export function useEditPassword() {
     }
   }, [isVerified]);
 
+  // 编辑密码只能编辑，不能发布
+  const canPublish = false;
+
   return {
     isVerified,
     verify,
     logout,
     refresh,
+    canPublish, // 始终为 false，编辑密码不能发布
   };
 }
