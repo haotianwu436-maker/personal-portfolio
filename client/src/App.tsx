@@ -10,6 +10,8 @@ import Blog from "./pages/Blog";
 import ArticleDetail from "./pages/ArticleDetail";
 import Messages from "./pages/Messages";
 import ArticleEdit from "./pages/ArticleEdit";
+import ArticleCreate from "./pages/ArticleCreate";
+import ArticleManagement from "./pages/ArticleManagement";
 import ProjectEdit from "./pages/ProjectEdit";
 
 function Router() {
@@ -22,6 +24,9 @@ function Router() {
       <Route path="/blog" component={Blog} />
       <Route path="/articles/:slug" component={ArticleDetail} />
       <Route path="/articles/:id/edit" component={ArticleEdit} />
+      <Route path="/admin/articles/create" component={ArticleCreate} />
+      <Route path="/admin/articles/:id/edit" component={ArticleEdit} />
+      <Route path="/admin/articles" component={ArticleManagement} />
       <Route path="/messages" component={Messages} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}

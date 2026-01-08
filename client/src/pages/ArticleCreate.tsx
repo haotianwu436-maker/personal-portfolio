@@ -1,20 +1,18 @@
-import { useParams, useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import MarkdownEditor from "@/components/MarkdownEditor";
-import { ArrowLeft, Loader2, Trash2, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
-export default function ArticleEdit() {
-  const { id } = useParams<{ id: string }>();
+export default function ArticleCreate() {
   const [, navigate] = useLocation();
   const { user, loading: isAuthLoading } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -28,47 +26,16 @@ export default function ArticleEdit() {
 
   const [tagInput, setTagInput] = useState("");
 
-  // 获取文章数据
-  const { data: article, isLoading: isLoadingArticle } = trpc.articles.getById.useQuery(
-    { id: id! },
-    { enabled: !!id && !!user }
-  );
-
-  // 更新文章
-  const updateMutation = trpc.articles.update.useMutation({
-    onSuccess: () => {
-      toast.success("文章已更新");
+  // 创建文章
+  const createMutation = trpc.articles.create.useMutation({
+    onSuccess: (result) => {
+      toast.success("文章已创建");
       navigate(`/articles/${formData.slug}`);
     },
     onError: (error) => {
-      toast.error(error.message || "更新失败");
+      toast.error(error.message || "创建失败");
     },
   });
-
-  // 删除文章
-  const deleteMutation = trpc.articles.delete.useMutation({
-    onSuccess: () => {
-      toast.success("文章已删除");
-      navigate("/blog");
-    },
-    onError: (error) => {
-      toast.error(error.message || "删除失败");
-    },
-  });
-
-  // 加载文章数据
-  useEffect(() => {
-    if (article) {
-      setFormData({
-        title: article.title,
-        slug: article.slug,
-        excerpt: article.excerpt,
-        content: article.content,
-        tags: article.tags || [],
-        status: article.status as "draft" | "published",
-      });
-    }
-  }, [article]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
@@ -95,23 +62,14 @@ export default function ArticleEdit() {
 
     setIsSaving(true);
     try {
-      await updateMutation.mutateAsync({
-        id: id!,
-        ...formData,
-      });
+      await createMutation.mutateAsync(formData);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = () => {
-    if (confirm("确定要删除这篇文章吗？此操作无法撤销。")) {
-      deleteMutation.mutate({ id: id! });
-    }
-  };
-
   // 加载中
-  if (isAuthLoading || isLoadingArticle) {
+  if (isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin" size={32} />
@@ -131,25 +89,13 @@ export default function ArticleEdit() {
             <div>
               <h1 className="text-3xl font-bold mb-2">需要登录</h1>
               <p className="text-foreground/60 mb-6">
-                只有网站所有者才能编辑文章。请先登录。
+                只有网站所有者才能创建文章。请先登录。
               </p>
               <Button onClick={() => navigate("/")}>
                 返回首页
               </Button>
             </div>
           </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // 文章未找到
-  if (!article) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">文章未找到</h1>
-          <Button onClick={() => navigate("/blog")}>返回博客</Button>
         </div>
       </div>
     );
@@ -163,19 +109,19 @@ export default function ArticleEdit() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/articles/${formData.slug}`)}
+            onClick={() => navigate("/blog")}
           >
             <ArrowLeft size={16} className="mr-2" />
             返回
           </Button>
-          <h1 className="text-3xl font-bold">编辑文章</h1>
+          <h1 className="text-3xl font-bold">创建新文章</h1>
         </div>
 
         {/* Form */}
         <Card className="p-8 space-y-6">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium mb-2">标题</label>
+            <label className="block text-sm font-medium mb-2">标题 *</label>
             <Input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -186,22 +132,25 @@ export default function ArticleEdit() {
 
           {/* Slug */}
           <div>
-            <label className="block text-sm font-medium mb-2">URL Slug</label>
+            <label className="block text-sm font-medium mb-2">URL Slug *</label>
             <Input
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
               placeholder="article-slug"
               className="w-full"
             />
+            <p className="text-sm text-foreground/60 mt-1">
+              用于URL中的唯一标识符，只能包含字母、数字和连字符
+            </p>
           </div>
 
           {/* Excerpt */}
           <div>
-            <label className="block text-sm font-medium mb-2">摘要</label>
+            <label className="block text-sm font-medium mb-2">摘要 *</label>
             <Textarea
               value={formData.excerpt}
               onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-              placeholder="文章摘要"
+              placeholder="文章摘要（会显示在列表中）"
               rows={3}
               className="w-full"
             />
@@ -209,7 +158,7 @@ export default function ArticleEdit() {
 
           {/* Content */}
           <div>
-            <label className="block text-sm font-medium mb-2">内容</label>
+            <label className="block text-sm font-medium mb-2">内容 *</label>
             <MarkdownEditor
               value={formData.content}
               onChange={(content) => setFormData({ ...formData, content })}
@@ -292,6 +241,9 @@ export default function ArticleEdit() {
                 <span>已发布</span>
               </label>
             </div>
+            <p className="text-sm text-foreground/60 mt-2">
+              选择"草稿"来保存文章但不发布，选择"已发布"来立即发布文章
+            </p>
           </div>
 
           {/* Actions */}
@@ -304,33 +256,33 @@ export default function ArticleEdit() {
               {isSaving ? (
                 <>
                   <Loader2 className="animate-spin mr-2" size={16} />
-                  保存中...
+                  创建中...
                 </>
               ) : (
-                "保存更改"
+                "创建文章"
               )}
             </Button>
             <Button
-              onClick={() => navigate(`/articles/${formData.slug}`)}
+              onClick={() => navigate("/blog")}
               variant="outline"
               className="flex-1"
             >
               取消
             </Button>
-            <Button
-              onClick={handleDelete}
-              variant="destructive"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? (
-                <Loader2 className="animate-spin mr-2" size={16} />
-              ) : (
-                <Trash2 size={16} className="mr-2" />
-              )}
-              删除
-            </Button>
           </div>
         </Card>
+
+        {/* Help Text */}
+        <div className="mt-8 p-6 bg-primary/5 rounded-lg border border-primary/10">
+          <h3 className="font-medium mb-2">提示</h3>
+          <ul className="text-sm text-foreground/70 space-y-1">
+            <li>• 标题、Slug和内容是必填的</li>
+            <li>• Slug必须是唯一的，用于生成文章URL</li>
+            <li>• 支持Markdown格式编写内容</li>
+            <li>• 可以添加多个标签来分类文章</li>
+            <li>• 草稿文章只有你能看到</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
