@@ -19,9 +19,14 @@ export function LanguageProvider({
   defaultLanguage = "zh",
 }: LanguageProviderProps) {
   const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === "undefined") return defaultLanguage;
+    if (typeof window === "undefined") return "zh";
+    // 优先使用保存的语言设置，如果没有则默认使用中文
     const stored = localStorage.getItem("language");
-    return (stored as Language) || defaultLanguage;
+    if (stored && (stored === "zh" || stored === "en")) {
+      return stored as Language;
+    }
+    // 首次访问默认使用中文
+    return "zh";
   });
 
   useEffect(() => {
