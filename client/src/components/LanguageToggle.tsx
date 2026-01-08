@@ -10,6 +10,8 @@ import {
 
 export function LanguageToggle() {
   const { language, setLanguage } = useLanguage();
+  
+  // Force re-render to ensure language toggle is visible
 
   return (
     <DropdownMenu>
