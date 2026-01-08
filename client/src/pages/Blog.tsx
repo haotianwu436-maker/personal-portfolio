@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useEditPassword } from "@/_core/hooks/useEditPassword";
 import PasswordDialog from "@/components/PasswordDialog";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -14,6 +15,7 @@ const fadeInUp = {
 
 export default function Blog() {
   const [, navigate] = useLocation();
+  const { t, language } = useLanguage();
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const { isVerified, verify } = useEditPassword();
@@ -50,10 +52,10 @@ export default function Blog() {
             size="sm"
             className="text-muted-foreground hover:text-foreground"
           >
-            ← 返回
+            ← {t.common.back}
           </Button>
           <span className="font-serif text-lg font-medium tracking-tight">
-            一些想法
+            {t.articles.title}
           </span>
           <div className="w-16" />
         </div>
@@ -69,16 +71,16 @@ export default function Blog() {
             variants={fadeInUp}
             className="mb-16"
           >
-            <h1 className="text-4xl md:text-5xl font-serif mb-4">一些想法</h1>
+            <h1 className="text-4xl md:text-5xl font-serif mb-4">{t.articles.title}</h1>
             <p className="text-lg text-muted-foreground font-light">
-              关于社区、文化与技术的思考与记录
+              {t.articles.subtitle}
             </p>
           </motion.div>
 
           {/* Articles List */}
           {isLoading ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">加载中...</p>
+              <p className="text-muted-foreground">{t.common.loading}</p>
             </div>
           ) : articles.length === 0 ? (
             <motion.div
@@ -88,7 +90,7 @@ export default function Blog() {
               className="text-center py-12"
             >
               <p className="text-muted-foreground mb-6">
-                还没有发布任何文章。敬请期待...
+                {t.blog.noArticles}
               </p>
               <p className="text-sm text-muted-foreground/60">
                 Built slowly, with care.
@@ -121,7 +123,7 @@ export default function Blog() {
                           className="gap-1"
                         >
                           <Edit2 size={16} />
-                          Edit
+                          {t.common.edit}
                         </Button>
                         <ArrowUpRight
                           size={20}
@@ -139,12 +141,15 @@ export default function Blog() {
                         <Calendar size={14} />
                         <time dateTime={article.publishedAt?.toString()}>
                           {article.publishedAt
-                            ? new Date(article.publishedAt).toLocaleDateString("zh-CN", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric"
-                            })
-                            : "未发布"}
+                            ? new Date(article.publishedAt).toLocaleDateString(
+                                language === "zh" ? "zh-CN" : "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric"
+                                }
+                              )
+                            : language === "zh" ? "未发布" : "Unpublished"}
                         </time>
                       </div>
 

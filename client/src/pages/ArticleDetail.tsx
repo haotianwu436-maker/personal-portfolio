@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Streamdown } from "streamdown";
 import BackToListButton from "@/components/BackToListButton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -15,6 +16,7 @@ const fadeInUp = {
 export default function ArticleDetail() {
   const [, params] = useRoute("/articles/:slug");
   const [, navigate] = useLocation();
+  const { t, language } = useLanguage();
 
   const { data: article, isLoading, error } = trpc.articles.getBySlug.useQuery(
     { slug: params?.slug || "" },
@@ -28,7 +30,7 @@ export default function ArticleDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <p className="text-muted-foreground">加载中...</p>
+        <p className="text-muted-foreground">{t.common.loading}</p>
       </div>
     );
   }
@@ -37,9 +39,9 @@ export default function ArticleDetail() {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center">
         <div className="text-center">
-          <h1 className="text-3xl font-serif mb-4">文章未找到</h1>
+          <h1 className="text-3xl font-serif mb-4">{t.common.articleNotFound}</h1>
           <Button onClick={() => navigate("/blog")} className="mt-4">
-            返回博客
+            {t.common.backToBlog}
           </Button>
         </div>
       </div>
@@ -54,11 +56,11 @@ export default function ArticleDetail() {
           <button
             onClick={() => navigate("/blog")}
             className="p-2 rounded-full hover:bg-secondary transition-colors"
-            aria-label="返回博客"
+            aria-label={t.common.backToBlog}
           >
             <ArrowLeft size={20} />
           </button>
-          <span className="text-sm text-muted-foreground">返回博客</span>
+          <span className="text-sm text-muted-foreground">{t.common.backToBlog}</span>
         </div>
       </header>
 
@@ -140,12 +142,12 @@ export default function ArticleDetail() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <p className="text-muted-foreground mb-6">想看更多想法？</p>
+              <p className="text-muted-foreground mb-6">{language === "zh" ? "想看更多想法？" : "Want to read more thoughts?"}</p>
               <Button
                 onClick={() => navigate("/blog")}
                 className="rounded-full px-8 py-6 text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30"
               >
-                返回所有文章
+                {t.articles.readAll}
               </Button>
             </motion.div>
           </div>
@@ -155,7 +157,7 @@ export default function ArticleDetail() {
       <footer className="py-8 text-center text-sm text-muted-foreground/60 border-t border-border/40">
         <p>Built slowly, with care.</p>
       </footer>
-      <BackToListButton listPath="/blog" label="返回博客列表" />
+      <BackToListButton listPath="/blog" label={t.blog.backToList} />
     </div>
   );
 }

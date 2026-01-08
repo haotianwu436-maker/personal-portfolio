@@ -50,6 +50,40 @@ export interface Translations {
   footer: {
     text: string;
   };
+  common: {
+    loading: string;
+    back: string;
+    backToHome: string;
+    backToBlog: string;
+    backToProjects: string;
+    notFound: string;
+    articleNotFound: string;
+    projectNotFound: string;
+    edit: string;
+    delete: string;
+    save: string;
+    cancel: string;
+    confirm: string;
+    yes: string;
+    no: string;
+  };
+  blog: {
+    title: string;
+    noArticles: string;
+    backToList: string;
+  };
+  article: {
+    readingTime: string;
+    publishedAt: string;
+    tags: string;
+    share: string;
+    copyLink: string;
+  };
+  project: {
+    impact: string;
+    learnMore: string;
+    viewAllProjects: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -103,6 +137,40 @@ export const translations: Record<Language, Translations> = {
     footer: {
       text: "Built slowly, with care.",
     },
+    common: {
+      loading: "加载中...",
+      back: "返回",
+      backToHome: "返回主页",
+      backToBlog: "返回博客",
+      backToProjects: "返回项目列表",
+      notFound: "未找到",
+      articleNotFound: "文章未找到",
+      projectNotFound: "项目未找到",
+      edit: "编辑",
+      delete: "删除",
+      save: "保存",
+      cancel: "取消",
+      confirm: "确认",
+      yes: "是",
+      no: "否",
+    },
+    blog: {
+      title: "博客",
+      noArticles: "还没有发布任何文章。敬请期待...",
+      backToList: "返回博客列表",
+    },
+    article: {
+      readingTime: "阅读时间",
+      publishedAt: "发布时间",
+      tags: "标签",
+      share: "分享",
+      copyLink: "复制链接",
+    },
+    project: {
+      impact: "项目影响",
+      learnMore: "想了解更多项目？",
+      viewAllProjects: "查看所有项目",
+    },
   },
   en: {
     nav: {
@@ -153,6 +221,40 @@ export const translations: Record<Language, Translations> = {
     },
     footer: {
       text: "Built slowly, with care.",
+    },
+    common: {
+      loading: "Loading...",
+      back: "Back",
+      backToHome: "Back to Home",
+      backToBlog: "Back to Blog",
+      backToProjects: "Back to Projects",
+      notFound: "Not Found",
+      articleNotFound: "Article Not Found",
+      projectNotFound: "Project Not Found",
+      edit: "Edit",
+      delete: "Delete",
+      save: "Save",
+      cancel: "Cancel",
+      confirm: "Confirm",
+      yes: "Yes",
+      no: "No",
+    },
+    blog: {
+      title: "Blog",
+      noArticles: "No articles published yet. Stay tuned...",
+      backToList: "Back to Blog List",
+    },
+    article: {
+      readingTime: "Reading Time",
+      publishedAt: "Published",
+      tags: "Tags",
+      share: "Share",
+      copyLink: "Copy Link",
+    },
+    project: {
+      impact: "Project Impact",
+      learnMore: "Want to learn more about projects?",
+      viewAllProjects: "View All Projects",
     },
   },
 };

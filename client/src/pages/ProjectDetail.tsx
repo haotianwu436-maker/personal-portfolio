@@ -5,6 +5,7 @@ import { useLocation, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import BackToListButton from "@/components/BackToListButton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -14,6 +15,7 @@ const fadeInUp = {
 export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
   const [, navigate] = useLocation();
+  const { t, language } = useLanguage();
 
   const { data: project, isLoading, error } = trpc.projects.getById.useQuery(
     { id: params?.id || "" },
@@ -27,7 +29,7 @@ export default function ProjectDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <p className="text-muted-foreground">加载中...</p>
+        <p className="text-muted-foreground">{t.common.loading}</p>
       </div>
     );
   }
@@ -36,9 +38,9 @@ export default function ProjectDetail() {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center">
         <div className="text-center">
-          <h1 className="text-3xl font-serif mb-4">项目未找到</h1>
+          <h1 className="text-3xl font-serif mb-4">{t.common.projectNotFound}</h1>
           <Button onClick={() => navigate("/")} className="mt-4">
-            返回主页
+            {t.common.backToHome}
           </Button>
         </div>
       </div>
@@ -53,11 +55,11 @@ export default function ProjectDetail() {
           <button
             onClick={() => navigate("/")}
             className="p-2 rounded-full hover:bg-secondary transition-colors"
-            aria-label="返回主页"
+            aria-label={t.common.backToHome}
           >
             <ArrowLeft size={20} />
           </button>
-          <span className="text-sm text-muted-foreground">返回主页</span>
+          <span className="text-sm text-muted-foreground">{t.common.backToHome}</span>
         </div>
       </header>
 
@@ -172,7 +174,7 @@ export default function ProjectDetail() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-2xl md:text-3xl font-serif mb-6">项目影响</h2>
+              <h2 className="text-2xl md:text-3xl font-serif mb-6">{t.project.impact}</h2>
               <p className="text-lg text-muted-foreground font-light leading-relaxed">
                 {project.impact}
               </p>
@@ -219,12 +221,12 @@ export default function ProjectDetail() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <p className="text-muted-foreground mb-6">想了解更多项目？</p>
+              <p className="text-muted-foreground mb-6">{t.project.learnMore}</p>
               <Button
                 onClick={() => navigate("/#projects")}
                 className="rounded-full px-8 py-6 text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30"
               >
-                查看所有项目
+                {t.project.viewAllProjects}
               </Button>
             </motion.div>
           </div>
@@ -234,7 +236,7 @@ export default function ProjectDetail() {
       <footer className="py-8 text-center text-sm text-muted-foreground/60 border-t border-border/40">
         <p>Built slowly, with care.</p>
       </footer>
-      <BackToListButton listPath="/" label="返回项目列表" />
+      <BackToListButton listPath="/" label={t.common.backToProjects} />
     </div>
   );
 }
